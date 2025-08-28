@@ -6,4 +6,4 @@ git push
 venv\Scripts\activate
 
 
-git remote set-url origin https://github.com/MurabiyaSambhav/Article.git
+
