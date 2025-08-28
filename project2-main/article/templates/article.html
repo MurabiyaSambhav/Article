@@ -1,0 +1,195 @@
+ {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head id="navbar">
+  <meta charset="UTF-8">
+  <title>My Articles</title>
+  <link rel="stylesheet" href="{% static 'css/article.css' %}">
+</head>
+<body>
+<div id="map"></div>
+
+
+<!-- Navbar -->
+<div id="navbar" style="display: flex; justify-content: space-between; align-items: center;">
+  {% if is_logged_in %}
+    <div>
+      <a href="{% url 'add_article' %}" class="button ajax-page">Add Article</a>
+      <a 
+        href="{% url 'draft_article' %}" 
+        id="draftsLink"
+        class="button ajax-page" 
+        data-has-drafts="{{ has_drafts|yesno:'true,false' }}"> My Drafts </a>
+      <a href="{% url 'logout' %}" class="button">Logout</a>
+    </div>
+     <form id="search-form">
+    <input type="text" name="search" placeholder="Search articles..." value="{{ search_query }}">
+    <button type="submit">Search</button>
+    </form> 
+    <div><strong>Welcome, {{ user_name }}!</strong></div>
+  {% else %}
+    <div>
+      <a href="{% url 'login' %}" class="button ajax-page">Login</a>
+    </div>
+  {% endif %}
+</div>
+
+<hr>
+
+<!-- Main 2-Column Layout -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: flex-start;">
+
+  <!-- Articles List -->
+<div>
+  <h2>Articles</h2>
+  <ul id="article-list" style="list-style: none; padding: 0;">
+    {% for article in articles %}
+      <li style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; background: white;">
+        <h3>Author: {{ article.author_name }}</h3>
+        <h2>Title: {{ article.title }}</h2>
+        <p>{{ article.content }}</p>
+        {% if article.tag_list %}
+          <strong>Tags:</strong>
+          {% for tag in article.tag_list %}
+            <a href="{% url 'tags' tag %}" class="tag-link" style="margin-right: 5px;">{{ tag }}</a>
+          {% endfor %}
+        {% endif %}
+      </li>
+    {% empty %}
+      <li>No articles found.</li>
+    {% endfor %}
+  </ul>
+</div>
+
+  <!-- Tags Sidebar -->
+  <div class="tags-sidebar">
+    <h3>All Tags</h3>
+    <ul>
+      {% for tag, count in tag_counts_list %}
+        <li>
+          <a href="{% url 'tags' tag %}" class="tag-link"
+             {% if selected_tag and selected_tag|lower == tag|lower %}style="font-weight:bold;color:red;"{% endif %}>
+             {{ tag }}
+          </a> ({{ count }})
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+</div> <!-- End Main Grid -->
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+  <div class="pagination-wrapper" style="text-align:center; margin-top: 20px;">
+    <div class="pagination">
+
+      <!-- First Page -->
+      {% if page_obj.number > 1 %}
+        <a href="?page=1" class="ajax-page">First</a>
+      {% endif %}
+
+      <!-- Previous Page -->
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="ajax-page">&larr;</a>
+      {% endif %}
+
+      <!-- Page Numbers -->
+      {% for num in page_obj.paginator.page_range %}
+        {% if num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+          {% if num == page_obj.number %}
+            <strong>{{ num }}</strong>
+          {% else %}
+            <a href="?page={{ num }}" class="ajax-page">{{ num }}</a>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+
+      <!-- Next Page -->
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="ajax-page">&rarr;</a>
+      {% endif %}
+
+      <!-- Last Page -->
+      {% if page_obj.number < page_obj.paginator.num_pages %}
+        <a href="?page={{ page_obj.paginator.num_pages }}" class="ajax-page">Last</a>
+      {% endif %}
+
+    </div>
+  </div>
+{% endif %}
+
+<script>
+  // Auto-remove message container after 3.5s
+  setTimeout(() => {
+    const msgContainer = document.getElementById('message-container');
+    if (msgContainer) msgContainer.remove();
+  }, 3500);
+</script>
+<script src="/static/js/common.js"></script>
+<script src="/static/js/article.js"></script>
+</body>
+</html> 
+{% comment %} <!DOCTYPE html>
+<html>
+<head>
+  <title>Google Map Example</title>
+  <style>
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h2>My Google Map</h2>
+  <div id="map"></div>
+
+  <!-- Load Google Maps JavaScript API -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-H18DRnUgOuhVJETJeea1o20bWdrIYh4"></script>
+  <script>
+    const apiKey = "AIzaSyC-H18DRnUgOuhVJETJeea1o20bWdrIYh4"; // Use the same key for REST requests
+
+    // Initialize map centered on New York
+    const map = new google.maps.Map(document.getElementById("map"), {
+      center: { lat: 21.515471, lng: 70.456444 },
+      zoom: 12
+    });
+
+    // Add initial marker
+    let marker = new google.maps.Marker({
+      position: { lat: 21.515471, lng: 70.456444 },
+      map: map,
+      title: "junagadh , malivada road!"
+    });
+
+    // Function to get coordinates from address using Geocoding API
+    async function getCoordinates(address) {
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.status === "OK") {
+        const location = data.results[0].geometry.location;
+        console.log("Latitude:", location.lat, "Longitude:", location.lng);
+
+        // Move map to new location
+        map.setCenter(location);
+
+        // Remove previous marker and add new one
+        if (marker) marker.setMap(null);
+        marker = new google.maps.Marker({
+          position: location,
+          map: map,
+          title: address
+        });
+
+        return location;
+      } else {
+        console.error("Error fetching location:", data.status);
+      }
+    }
+    // Example usage: move map to Eiffel Tower
+    getCoordinates("Eiffel Tower, Paris");
+  </script>
+</body>
+</html> {% endcomment %}
