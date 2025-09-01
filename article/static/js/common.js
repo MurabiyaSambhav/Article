@@ -1,4 +1,5 @@
 console.log("Main Page ----------->", window.location.pathname, "at", new Date().toLocaleTimeString());
+// Common.js
 
 function getCookie(name) {
   let cookieValue = null;
@@ -17,28 +18,7 @@ function getCookie(name) {
 
 const csrfToken = getCookie('csrftoken');
 
-function showAlert(message, type = "success", floating = false) {
-  const currentForm = document.querySelector("form#loginForm, form#registerForm, form#addArticleForm");
-  const messageBox = (!floating && currentForm) ? currentForm.querySelector(".form-messages") : null;
-  const alert = document.createElement("div");
-  alert.className = `custom-alert alert-${type}`;
-  alert.innerText = message;
-
-  if (messageBox) {
-    messageBox.innerHTML = "";
-    messageBox.appendChild(alert);
-    setTimeout(() => alert.remove(), 3500);
-  } else {
-    alert.style.position = "fixed";
-    alert.style.top = "20px";
-    alert.style.right = "20px";
-    alert.style.zIndex = "9999";
-    document.body.appendChild(alert);
-    setTimeout(() => alert.remove(), 3500);
-  }
-}
-
-function replaceMainContent(html, url) {
+function replaceMainContent(html, url, messageToDisplay = null) {
   const mainContent = document.getElementById("main-content");
   if (!mainContent) return;
 
@@ -59,6 +39,11 @@ function replaceMainContent(html, url) {
     window.history.pushState({}, "", url);
     mainContent.style.opacity = "1";
     window.scrollTo({ top: 0, behavior: "smooth" });
+
+    // Display the message if one was passed
+    if (messageToDisplay) {
+      showAlert(messageToDisplay.message, messageToDisplay.type);
+    }
 
     // Initialize all page scripts
     if (typeof initLoginPage === "function") initLoginPage();

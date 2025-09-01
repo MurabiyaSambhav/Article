@@ -12,7 +12,7 @@ route.register(r'articles', ArticleHybridViewSet, basename='article')
 # router.register(r'users', UserHybridViewSet, basename='user')
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls, name='admin'),
 
     # Old frontend pages
     path('', article, name='home'),

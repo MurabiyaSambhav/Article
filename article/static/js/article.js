@@ -1,6 +1,6 @@
 // article.js
 // SPA navigation for article links, pagination, and tags
-
+console.log("Article Page ----------->", window.location.pathname, "at", new Date().toLocaleTimeString());
 function initArticlePage(url) {
   // SPA navigation for links
   document.querySelectorAll("a.ajax-page, a.tag-link").forEach(link => {
