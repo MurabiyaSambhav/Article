@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.urls import reverse
 from django.core.paginator import Paginator
 from collections import Counter
+from django.db.models import Q
 from article.models import Cuser, Articles
 from rest_framework.response import Response
 from article.serializers import ArticleSerializer
@@ -119,18 +120,22 @@ def article(request):
     # Now, get the articles and handle pagination on the server.
     queryset = Articles.objects.filter(is_draft=False).select_related('author').order_by('-created_at')
     
-    # You can apply filtering here based on request parameters if needed.
+    # This is the simplified and correct filtering logic.
     tag_query = request.GET.get('tag', '').strip()
     if tag_query:
-        queryset = queryset.filter(tags__icontains=tag_query)
+        # This filters articles where the tag field is an exact match for the tag query,
+        # or where the tag query is followed by a comma, or preceded by a comma.
+        queryset = queryset.filter(
+            Q(tags__iexact=tag_query) |
+            Q(tags__icontains=tag_query + ', ') |
+            Q(tags__icontains=', ' + tag_query)
+        )
 
     paginator = Paginator(queryset, 5)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     
-    # Process articles to make tags a list
     processed_articles = []
-    # This is the corrected loop
     for article in page_obj.object_list:
         processed_article = {
             'id': article.id,
@@ -139,7 +144,6 @@ def article(request):
             'tags_list': [tag.strip() for tag in article.tags.split(',') if tag.strip()],
             'author': article.author,
         }
-        # THIS LINE MUST BE INSIDE THE LOOP 
         processed_articles.append(processed_article)
 
     # Prepare the context with all the data for the template.
