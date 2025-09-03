@@ -1,5 +1,5 @@
 // common.js
-console.log("Main Page js----------->", window.location.pathname, "at", new Date().toLocaleTimeString());
+console.log("Common js----------->", window.location.pathname, "at", new Date().toLocaleTimeString());
 // Shared utility functions
 function getCookie(name) {
   let cookieValue = null;

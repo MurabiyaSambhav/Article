@@ -59,8 +59,6 @@ def register(request):
             password = data.get('password')
             phone = data.get('phone')
 
-            if not all([name, email, password]):
-                return JsonResponse({"success": False, "message": "All fields are required."}, status=400)
             if Cuser.objects.filter(email=email).exists():
                 return JsonResponse({"success": False, "message": "Email already registered!"}, status=409)
             if Cuser.objects.filter(username=name).exists():
@@ -130,6 +128,20 @@ def article(request):
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     
+    # Process articles to make tags a list
+    processed_articles = []
+    # This is the corrected loop
+    for article in page_obj.object_list:
+        processed_article = {
+            'id': article.id,
+            'title': article.title,
+            'content': article.content,
+            'tags_list': [tag.strip() for tag in article.tags.split(',') if tag.strip()],
+            'author': article.author,
+        }
+        # THIS LINE MUST BE INSIDE THE LOOP 
+        processed_articles.append(processed_article)
+
     # Prepare the context with all the data for the template.
     context = {
         'user_name': user.username if user else None,
@@ -138,9 +150,8 @@ def article(request):
         'all_tags': all_tags,
         'has_drafts': has_drafts,
         'no_drafts': not has_drafts,
-        
-        # --- Add the rendered articles and pagination data to the context ---
-        'articles': page_obj.object_list,
+        'tag_query': tag_query,
+        'articles': processed_articles,
         'page_obj': page_obj,
     }
     
