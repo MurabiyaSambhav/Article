@@ -1,50 +1,44 @@
-console.log("Login Page ----------->", window.location.pathname, "at", new Date().toLocaleTimeString());
 // login.js
-async function initLoginPage() {
-  const loginForm = document.getElementById("loginForm");
-  if (!loginForm) return;
 
-  loginForm.onsubmit = async (e) => {
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("Login Page js ----------->", window.location.pathname, "at", new Date().toLocaleTimeString());
+
+  const loginForm = document.getElementById("loginForm");
+  if (!loginForm) {
+    console.warn("Login form not found. Skipping event listener attachment.");
+    return;
+  }
+
+  const csrfToken = getCookie('csrftoken');
+
+  loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const formData = new FormData(loginForm);
-    const csrfToken = getCsrfToken();
-
-    // Add CSRF token to formData directly if not already present
-    if (csrfToken && !formData.has('csrfmiddlewaretoken')) {
-      formData.append('csrfmiddlewaretoken', csrfToken);
-    }
+    const data = {};
+    formData.forEach((value, key) => {
+      data[key] = value;
+    });
 
     try {
       const response = await fetch(loginForm.action, {
         method: "POST",
-        body: formData,
+        body: JSON.stringify(data),
         headers: {
+          "Content-Type": "application/json",
           "X-Requested-With": "XMLHttpRequest",
-          // Note: CSRF token is now sent in the form data, not as a header, which is standard for form submissions
+          "X-CSRFToken": csrfToken
         }
       });
 
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        const errorText = await response.text();
+        throw new Error(`Network response was not ok (${response.status}): ${errorText}`);
       }
-
-      const data = await response.json();
-
-      if (data.success) {
-        showMessage(data.message || "Login successful!", 'success');
-        // Use a short delay before redirecting for a better UX
-        setTimeout(() => {
-          window.location.href = `/${data.redirect}`;
-        }, 1000);
-      } else {
-        showMessage(data.message || "Login failed", 'error');
-      }
+      const result = await response.json();
+      handleAjaxResponse(result);
     } catch (err) {
       console.error("Login AJAX Error:", err);
-      showMessage("An error occurred. Please try again.", 'error');
+      showAlert("An error occurred. Please try again.", 'error');
     }
-  };
-}
-
-// You would call this function when the page loads
-initLoginPage();
+  });
+});

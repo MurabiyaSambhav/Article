@@ -11,20 +11,17 @@
     <div id="main-content">
 
         <form id="loginForm" method="POST" action="{% url 'login' %}">
-          {% csrf_token %}
-          <h2>Login</h2>
+            {% csrf_token %}
+            <h2>Login</h2>
 
-          <!-- Inline Message Area (inside form) -->
-          <div class="form-messages"></div>
+            <label>Email:</label>
+            <input type="email" name="email" required autocomplete="username">
 
-          <label>Email:</label>
-          <input type="email" name="email" required>
+            <label>Password:</label>
+            <input type="password" name="password" required autocomplete="current-password">
 
-          <label>Password:</label>
-          <input type="password" name="password" required>
-
-          <button type="submit">Login</button>
-          <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+            <button type="submit">Login</button>
+            <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
         </form>
 
     </div>
