@@ -1,7 +1,11 @@
 // login.js
-
-document.addEventListener('DOMContentLoaded', () => {
-  console.log("Login Page js ----------->", window.location.pathname, "at", new Date().toLocaleTimeString());
+document.addEventListener("DOMContentLoaded", () => {
+  console.log(
+    "Login Page js ----------->",
+    window.location.pathname,
+    "at",
+    new Date().toLocaleTimeString()
+  );
 
   const loginForm = document.getElementById("loginForm");
   if (!loginForm) {
@@ -9,36 +13,59 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  const csrfToken = getCookie('csrftoken');
+  const csrfToken = getCookie("csrftoken");
+  if (!csrfToken) {
+    console.error("CSRF token not found!");
+    showAlert("Security token missing. Please refresh the page.", "error");
+    return;
+  }
+
+  const submitBtn = loginForm.querySelector("button[type='submit']");
 
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    // Convert form data to JSON
     const formData = new FormData(loginForm);
-    const data = {};
-    formData.forEach((value, key) => {
-      data[key] = value;
-    });
+    const data = Object.fromEntries(formData.entries());
 
     try {
+      // Disable submit button to prevent double clicks
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Logging in...";
+      }
+
       const response = await fetch(loginForm.action, {
         method: "POST",
         body: JSON.stringify(data),
         headers: {
           "Content-Type": "application/json",
           "X-Requested-With": "XMLHttpRequest",
-          "X-CSRFToken": csrfToken
-        }
+          "X-CSRFToken": csrfToken,
+        },
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Network response was not ok (${response.status}): ${errorText}`);
+        throw new Error(
+          `Network error (${response.status}): ${errorText || "Unknown"}`
+        );
       }
+
       const result = await response.json();
       handleAjaxResponse(result);
+
     } catch (err) {
       console.error("Login AJAX Error:", err);
-      showAlert("An error occurred. Please try again.", 'error');
+      showAlert("Login failed. Please check your credentials and try again.", "error");
+
+    } finally {
+      // Re-enable the button
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Login";
+      }
     }
   });
 });

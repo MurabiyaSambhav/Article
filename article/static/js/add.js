@@ -1,42 +1,44 @@
 // add.js
-console.log("Add Page js ----------->", window.location.pathname, "at", new Date().toLocaleTimeString());
+console.log("Add Page js ----------->",window.location.pathname,"at",new Date().toLocaleTimeString());
 
 function initAddArticlePage() {
   const articleForm = document.getElementById("addArticleForm");
   if (!articleForm) return;
 
-  articleForm.addEventListener("click", e => {
-    // Only handle clicks on buttons within the form
+  articleForm.addEventListener("click", (e) => {
     if (e.target.tagName !== "BUTTON") return;
-
-    // Prevent the default form submission for all buttons initially
-    // We will selectively re-enable it.
-    e.preventDefault();
 
     const btn = e.target;
     const action = btn.dataset.action;
 
-    // Handle cancel button click by redirecting
+    if (!action) return; // ignore buttons without action
+
+    // Cancel button: just redirect
     if (action === "cancel") {
+      e.preventDefault();
       const redirectUrl = btn.dataset.redirect;
       if (redirectUrl) {
+        console.log("Redirecting to:", redirectUrl);
         window.location.href = redirectUrl;
       }
       return;
     }
 
-    // For "publish," "draft," and "delete" actions,
-    // we'll append a hidden input to the form and submit it.
-    // This allows the server to handle the action.
+    // Publish / Draft / Delete actions
+    // Remove any previous hidden action inputs
+    const oldHidden = articleForm.querySelector("input[name='action']");
+    if (oldHidden) oldHidden.remove();
 
-    const hiddenInput = document.createElement('input');
-    hiddenInput.type = 'hidden';
-    hiddenInput.name = 'action';
+    // Create new hidden input
+    const hiddenInput = document.createElement("input");
+    hiddenInput.type = "hidden";
+    hiddenInput.name = "action";
     hiddenInput.value = action;
     articleForm.appendChild(hiddenInput);
 
-    // Now, submit the form normally. The browser will handle the redirect
-    // returned by the Django view.
+    console.log(`Submitting form with action: ${action}`);
+    // Let the browser submit normally
+    // Django view will handle redirection
     articleForm.submit();
   });
 }

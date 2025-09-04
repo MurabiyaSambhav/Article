@@ -36,25 +36,58 @@
 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: flex-start;">
 
 <div>
-  <h2>Articles</h2>
-  <ul id="article-list" style="list-style: none; padding: 0;">
-    {% for article in articles %}
-      <li style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; background: white;">
-        <h3>Author: {{ article.author.username }}</h3>
-        <h2>Title: {{ article.title }}</h2>
-        <p>{{ article.content }}</p>
-        {% if article.tags_list %}
-          <strong>Tags:</strong>
-          {% for tag in article.tags_list %}
-            <a href="{% url 'tags' tag %}" class="tag-link" style="margin-right: 5px;">{{ tag }}</a>
-          {% endfor %}
+ <h2>Articles</h2>
+ <ul id="article-list" style="list-style: none; padding: 0;">
+  {% for article in articles %}
+   <li style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; background: white;">
+    <h3>Author: {{ article.author.username }}</h3>
+    <h2>Title: {{ article.title }}</h2>
+    <p>{{ article.content }}</p>
+    <div class="interactions" style="margin-top: 10px;">
+      <button class="like-btn" 
+          data-article-id="{{ article.id }}" 
+          data-is-liked="{% if article.is_liked_by_user %}true{% else %}false{% endif %}">
+        {% if article.is_liked_by_user %}
+          Liked! 
+        {% else %}
+          Like
         {% endif %}
-      </li>
-    {% empty %}
-      <li>No articles found.</li>
-    {% endfor %}
-  </ul>
-</div>
+      </button>
+      <span>
+        <span class="likes-count">{{ article.likes_count }}</span> Likes
+      </span>
+
+      <button class="comment-toggle-btn" data-article-id="{{ article.id }}">
+        Comments
+      </button>
+      <span>
+        <span class="comments-count">{{ article.comments_count }}</span> Comments
+      </span>
+    </div>
+    <br>
+    {% if article.tags_list %}
+     <strong>Tags:</strong>
+     {% for tag in article.tags_list %}
+      <a href="{% url 'tags' tag %}" class="tag-link" style="margin-right: 5px;">{{ tag }}</a>
+     {% endfor %}
+    {% endif %}
+    
+        <div class="comments-section" id="comments-section-{{ article.id }}" style="display: none; margin-top: 20px;">
+     <h4>Comments:</h4>
+     <ul class="comments-list" style="list-style: none; padding: 0;">
+           </ul>
+     <button class="add-comment-btn" data-article-id="{{ article.id }}">Add Comment</button>
+     <div class="comment-form-area" style="display: none; margin-top: 10px;">
+      <textarea class="comment-input" placeholder="Write a comment..."></textarea>
+      <button class="post-comment-btn">Post</button>
+     </div>
+    </div>
+   </li>
+  {% empty %}
+   <li>No articles found.</li>
+  {% endfor %}
+ </ul>
+ </div>
 
   <div class="tags-sidebar">
     <h3>All Tags</h3>

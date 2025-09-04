@@ -5,13 +5,14 @@ from django.http import JsonResponse
 from django.urls import reverse
 from django.core.paginator import Paginator
 from collections import Counter
-from django.db.models import Q
-from article.models import Cuser, Articles
+from django.db.models import Count, Q, Exists, OuterRef, F
+from article.models import Cuser, Articles, Comment, Like
 from rest_framework.response import Response
 from article.serializers import ArticleSerializer
 from rest_framework import viewsets, filters
 from rest_framework.decorators import action, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
+
 import json
 
 # Your existing API viewset remains the same.
@@ -51,7 +52,6 @@ class ArticleHybridViewSet(viewsets.ModelViewSet):
 # -------------------- Traditional Views (Modified for SSR) --------------------
 
 def register(request):
-    # Your register view logic remains correct for AJAX submissions.
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -75,7 +75,6 @@ def register(request):
     return render(request, 'register.html')
 
 def login(request):
-    # Your login view logic remains correct for AJAX submissions.
     if request.user.is_authenticated:
         return redirect(reverse('article'))
 
@@ -103,11 +102,9 @@ def logout(request):
     auth_logout(request)
     return redirect(reverse('article'))
 
-# --- THIS IS THE KEY CHANGE FOR SSR ---
 def article(request):
     user = request.user if request.user.is_authenticated else None
     
-    # First, get all the tags for the tag cloud.
     all_tags_flat = []
     for art in Articles.objects.filter(is_draft=False):
         all_tags_flat.extend([tag.strip() for tag in art.tags.split(',') if tag.strip()])
@@ -117,36 +114,33 @@ def article(request):
 
     has_drafts = Articles.objects.filter(author=user, is_draft=True).exists() if user else False
     
-    # Now, get the articles and handle pagination on the server.
     queryset = Articles.objects.filter(is_draft=False).select_related('author').order_by('-created_at')
     
-    # This is the simplified and correct filtering logic.
+    if user and user.is_authenticated:
+        queryset = queryset.annotate(
+            is_liked_by_user=Exists(Like.objects.filter(
+                article=OuterRef('pk'), 
+                user=user
+            ))
+        )
+    
+    queryset = queryset.annotate(
+        likes_count=Count('like_entries'),
+        comments_count=Count('comments')
+    )
+    
     tag_query = request.GET.get('tag', '').strip()
     if tag_query:
-        # This filters articles where the tag field is an exact match for the tag query,
-        # or where the tag query is followed by a comma, or preceded by a comma.
         queryset = queryset.filter(
             Q(tags__iexact=tag_query) |
             Q(tags__icontains=tag_query + ', ') |
             Q(tags__icontains=', ' + tag_query)
         )
-
+    
     paginator = Paginator(queryset, 5)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     
-    processed_articles = []
-    for article in page_obj.object_list:
-        processed_article = {
-            'id': article.id,
-            'title': article.title,
-            'content': article.content,
-            'tags_list': [tag.strip() for tag in article.tags.split(',') if tag.strip()],
-            'author': article.author,
-        }
-        processed_articles.append(processed_article)
-
-    # Prepare the context with all the data for the template.
     context = {
         'user_name': user.username if user else None,
         'is_logged_in': bool(user),
@@ -155,13 +149,12 @@ def article(request):
         'has_drafts': has_drafts,
         'no_drafts': not has_drafts,
         'tag_query': tag_query,
-        'articles': processed_articles,
+        'articles': page_obj.object_list,
         'page_obj': page_obj,
     }
     
     return render(request, 'article.html', context)
-    
-# The other views remain mostly the same.
+
 @login_required(login_url='login')
 def save_article(request, article_id=None):
     user = request.user
@@ -234,6 +227,84 @@ def draft_article(request):
     return render(request, 'draft_article.html', context)
 
 def tags(request, tag):
-    # This view is now an entry point for a specific tag search.
-    # It will pass the tag to the article view to filter the content.
     return redirect(reverse('article') + f'?tag={tag}')
+
+@login_required(login_url='login')
+def like_article(request, article_id):
+    if request.method == 'POST':
+        article = get_object_or_404(Articles, id=article_id)
+        user = request.user
+        
+        try:
+            like_instance = Like.objects.get(article=article, user=user)
+            like_instance.delete()
+            is_liked = False
+            message = "Unliked"
+        except Like.DoesNotExist:
+            Like.objects.create(article=article, user=user)
+            is_liked = True
+            message = "Liked"
+        
+        # Use the correct related name here
+        new_like_count = article.like_entries.count()
+
+        return JsonResponse({
+            'success': True,
+            'is_liked': is_liked,
+            'new_count': new_like_count,
+            'message': message
+        })
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
+
+@login_required(login_url='login')
+def add_comment(request, article_id):
+    if request.method == 'POST':
+        article = get_object_or_404(Articles, id=article_id)
+        user = request.user
+        
+        try:
+            data = json.loads(request.body)
+            content = data.get('content')
+            
+            if not content:
+                return JsonResponse({'success': False, 'message': 'Comment content cannot be empty.'}, status=400)
+
+            comment = Comment.objects.create(
+                article=article,
+                user=user,
+                content=content
+            )
+            
+            # This related name 'comments' is correct
+            new_comment_count = article.comments.count()
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Comment added successfully.',
+                'comment_id': comment.id,
+                'new_count': new_comment_count,
+                'comment_data': {
+                    'author': user.username,
+                    'content': content,
+                    'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                }
+            })
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON data.'}, status=400)
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
+
+def get_comments(request, article_id):
+  article = get_object_or_404(Articles, id=article_id)
+  comments = Comment.objects.filter(article=article).order_by('created_at').annotate(
+    author_username=F('user__username')
+  )
+  comment_list = [
+    {
+      'author': comment.author_username,
+      'content': comment.content,
+      'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M')
+    } for comment in comments
+  ]
+  return JsonResponse({'success': True, 'comments': comment_list})

@@ -4,6 +4,7 @@ from django.contrib import admin
 from article.views import ArticleHybridViewSet
 from article.views import article, draft_article, save_article, login, logout, register,tags
 # from article.views import UserHybridViewSet
+from . import views
 
 route = DefaultRouter()
 # register() connects a ViewSet to a URL prefix.
@@ -24,6 +25,9 @@ urlpatterns = [
     path('logout/', logout, name='logout'),
     path('register/', register, name='register'),
     path('tags/<str:tag>/', tags, name='tags'),
+    path('article/<int:article_id>/like/', views.like_article, name='like_article'),
+    path('article/<int:article_id>/comment/', views.add_comment, name='add_comment'),
+    path('get_comments/<int:article_id>/', views.get_comments, name='get_comments'),
 
     # DRF API
     path('api/', include(route.urls)),

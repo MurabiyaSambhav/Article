@@ -1,44 +1,80 @@
 // drafts.js
 function initDraftsPage() {
-  // Drafts link SPA navigation
   const draftsLink = document.getElementById("draftsLink");
+
+  // Handle "Drafts" navigation (SPA style)
   if (draftsLink) {
-    draftsLink.onclick = e => {
+    draftsLink.addEventListener("click", async (e) => {
+      e.preventDefault();
       const hasDrafts = draftsLink.dataset.hasDrafts === "true";
+
       if (!hasDrafts) {
-        e.preventDefault();
         showAlert("You have no drafts yet!", "warning", true);
         return;
       }
-      e.preventDefault();
+
       const targetUrl = draftsLink.getAttribute("href");
-      fetch(targetUrl + "?format=html", { headers: { "X-Requested-With": "XMLHttpRequest" } })
-        .then(r => r.text())
-        .then(html => replaceMainContent(html, targetUrl))
-        .catch(err => console.error("Drafts SPA Error:", err));
-    };
+      try {
+        const response = await fetch(targetUrl + "?format=html", {
+          headers: { "X-Requested-With": "XMLHttpRequest" }
+        });
+
+        if (!response.ok) throw new Error("Failed to load drafts page");
+
+        const html = await response.text();
+        replaceMainContent(html, targetUrl);
+
+      } catch (err) {
+        console.error("Drafts SPA Error:", err);
+        showAlert("Failed to load drafts. Please try again.", "error");
+      }
+    });
   }
 
-  // Delete article buttons in drafts
+  // Handle "Delete draft" buttons
   document.querySelectorAll(".delete-article-btn").forEach(btn => {
-    btn.onclick = e => {
+    btn.addEventListener("click", async (e) => {
       e.preventDefault();
       const deleteUrl = btn.dataset.url;
-      fetch(deleteUrl, { method: "POST", headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": csrfToken } })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            showAlert(data.message || "Article deleted!", "error", true);
-            fetch("/article/?format=html", { headers: { "X-Requested-With": "XMLHttpRequest" } })
-              .then(res => res.text())
-              .then(html => replaceMainContent(html, "/article/"));
-          } else {
-            showAlert(data.message || "Delete failed", "error");
+      const csrfToken = getCookie("csrftoken");
+
+      if (!csrfToken) {
+        showAlert("CSRF token missing. Please refresh the page.", "error");
+        return;
+      }
+
+      try {
+        const res = await fetch(deleteUrl, {
+          method: "POST",
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRFToken": csrfToken
           }
-        })
-        .catch(err => console.error("Delete Draft Error:", err));
-    };
+        });
+
+        if (!res.ok) throw new Error("Failed to delete draft");
+
+        const data = await res.json();
+
+        if (data.success) {
+          showAlert(data.message || "Article deleted!", "success", true);
+
+          // Reload article list after delete
+          const articleRes = await fetch("/article/?format=html", {
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+          });
+
+          const html = await articleRes.text();
+          replaceMainContent(html, "/article/");
+
+        } else {
+          showAlert(data.message || "Delete failed", "error");
+        }
+
+      } catch (err) {
+        console.error("Delete Draft Error:", err);
+        showAlert("An error occurred while deleting draft.", "error");
+      }
+    });
   });
 }
-
-
