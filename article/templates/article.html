@@ -2,33 +2,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>My Articles</title>
-  <link rel="stylesheet" href="{% static 'css/article.css' %}">
+ <meta charset="UTF-8">
+ <title>My Articles</title>
+ <link rel="stylesheet" href="{% static 'css/article.css' %}">
 </head>
 <body>
 
-<div id="navbar" style="display: flex; justify-content: space-between; align-items: center;">
-  {% if is_logged_in %}
-    <div>
-      <a href="{% url 'add_article' %}" class="button">Add Article</a>
-      <a 
-        href="{% url 'draft_article' %}" 
-        id="draftsLink"
-        class="button" 
-        data-has-drafts="{{ has_drafts|yesno:'true,false' }}"> My Drafts </a>
-      <a href="{% url 'logout' %}" class="button">Logout</a>
-    </div>
-     <form id="search-form" method="get" action="{% url 'article' %}">
-       <input type="text" name="search" placeholder="Search articles..." value="{{ search_query }}">
-       <button type="submit">Search</button>
-     </form> 
-    <div><strong>Welcome, {{ user_name }}!</strong></div>
-  {% else %}
-    <div>
-      <a href="{% url 'login' %}" class="button">Login</a>
-    </div>
-  {% endif %}
+<div id="navbar" style="display: flex; justify-content: space-between; align-items: center;" data-is-logged-in="{{ is_logged_in|yesno:'true,false' }}">
+ {% if is_logged_in %}
+  <div>
+   <a href="{% url 'add_article' %}" class="button">Add Article</a>
+   <a 
+    href="{% url 'draft_article' %}" 
+    id="draftsLink"
+    class="button" 
+    data-has-drafts="{{ has_drafts|yesno:'true,false' }}"> My Drafts </a>
+   <a href="{% url 'logout' %}" class="button">Logout</a>
+  </div>
+  <form id="search-form" method="get" action="{% url 'article' %}">
+   <input type="text" name="search" placeholder="Search articles..." value="{{ search_query }}">
+   <button type="submit">Search</button>
+  </form> 
+  <div><strong>Welcome, {{ user_name }}!</strong></div>
+ {% else %}
+  <div>
+   <a href="{% url 'login' %}" class="button">Login</a>
+  </div>
+ {% endif %}
 </div>
 
 <hr>
@@ -36,105 +36,106 @@
 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: flex-start;">
 
 <div>
- <h2>Articles</h2>
- <ul id="article-list" style="list-style: none; padding: 0;">
-  {% for article in articles %}
-   <li style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; background: white;">
-    <h3>Author: {{ article.author.username }}</h3>
-    <h2>Title: {{ article.title }}</h2>
-    <p>{{ article.content }}</p>
-    <div class="interactions" style="margin-top: 10px;">
-      <button class="like-btn" 
-          data-article-id="{{ article.id }}" 
-          data-is-liked="{% if article.is_liked_by_user %}true{% else %}false{% endif %}">
-        {% if article.is_liked_by_user %}
-          Liked! 
-        {% else %}
-          Like
-        {% endif %}
-      </button>
-      <span>
-        <span class="likes-count">{{ article.likes_count }}</span> Likes
-      </span>
-
-      <button class="comment-toggle-btn" data-article-id="{{ article.id }}">
-        Comments
-      </button>
-      <span>
-        <span class="comments-count">{{ article.comments_count }}</span> Comments
-      </span>
-    </div>
-    <br>
-    {% if article.tags_list %}
-     <strong>Tags:</strong>
-     {% for tag in article.tags_list %}
-      <a href="{% url 'tags' tag %}" class="tag-link" style="margin-right: 5px;">{{ tag }}</a>
-     {% endfor %}
+<h2>Articles</h2>
+<ul id="article-list" style="list-style: none; padding: 0;">
+ {% for article in articles %}
+ <li style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; background: white;">
+  <h3>Author: {{ article.author.username }}</h3>
+  <h2>Title: {{ article.title }}</h2>
+  <p>{{ article.content }}</p>
+  <div class="interactions" style="margin-top: 10px;">
+   <button class="like-btn" 
+     data-article-id="{{ article.id }}" 
+     data-is-liked="{% if article.is_liked_by_user %}true{% else %}false{% endif %}">
+    {% if article.is_liked_by_user %}
+     Liked! 
+    {% else %}
+     Like
     {% endif %}
-    
-        <div class="comments-section" id="comments-section-{{ article.id }}" style="display: none; margin-top: 20px;">
-     <h4>Comments:</h4>
-     <ul class="comments-list" style="list-style: none; padding: 0;">
-           </ul>
-     <button class="add-comment-btn" data-article-id="{{ article.id }}">Add Comment</button>
-     <div class="comment-form-area" style="display: none; margin-top: 10px;">
-      <textarea class="comment-input" placeholder="Write a comment..."></textarea>
-      <button class="post-comment-btn">Post</button>
-     </div>
-    </div>
-   </li>
-  {% empty %}
-   <li>No articles found.</li>
+   </button>
+   <span>
+    <span class="likes-count">{{ article.likes_count }}</span> Likes
+   </span>
+   <button class="comment-toggle-btn" data-article-id="{{ article.id }}">
+    Comments
+   </button>
+   <span>
+    <span class="comments-count">{{ article.comments_count }}</span> Comments
+   </span>
+  </div>
+  <br>
+  {% if article.tags_list %}
+  <strong>Tags:</strong>
+  {% for tag in article.tags_list %}
+   <a href="{% url 'tags' tag %}" class="tag-link" style="margin-right: 5px;">{{ tag }}</a>
   {% endfor %}
- </ul>
+  {% endif %}
+  
+  <!-- New comment section -->
+  <div class="comments-section" id="comments-section-{{ article.id }}" style="display: none; margin-top: 20px;">
+   <h4>Comments:</h4>
+   <div class="comments-list-container">
+    <ul class="comments-list" id="comments-list-{{ article.id }}" style="list-style: none; padding: 0;">
+    </ul>
+   </div>
+   <div class="comment-form-area" style="margin-top: 10px;">
+    <textarea class="comment-input" id="comment-input-{{ article.id }}" placeholder="Write a comment..." style="width: 100%; height: 60px;"></textarea>
+    <button class="post-comment-btn" data-article-id="{{ article.id }}">Post</button>
+   </div>
+  </div>
+ </li>
+ {% empty %}
+ <li>No articles found.</li>
+ {% endfor %}
+</ul>
+</div>
+
+ <div class="tags-sidebar">
+  <h3>All Tags</h3>
+  <ul>
+   {% for tag, count in tag_counts_list %}
+    <li>
+     <a href="{% url 'tags' tag %}" class="tag-link"
+      {% if selected_tag and selected_tag|lower == tag|lower %}style="font-weight:bold;color:red;"{% endif %}>
+      {{ tag }}
+     </a> ({{ count }})
+    </li>
+   {% endfor %}
+  </ul>
  </div>
 
-  <div class="tags-sidebar">
-    <h3>All Tags</h3>
-    <ul>
-      {% for tag, count in tag_counts_list %}
-        <li>
-          <a href="{% url 'tags' tag %}" class="tag-link"
-             {% if selected_tag and selected_tag|lower == tag|lower %}style="font-weight:bold;color:red;"{% endif %}>
-             {{ tag }}
-          </a> ({{ count }})
-        </li>
-      {% endfor %}
-    </ul>
-  </div>
-
 </div> {% if page_obj.has_other_pages %}
-  <div class="pagination-wrapper" style="text-align:center; margin-top: 20px;">
-    <div class="pagination">
+ <div class="pagination-wrapper" style="text-align:center; margin-top: 20px;">
+  <div class="pagination">
 
-      {% if page_obj.number > 1 %}
-        <a href="?page=1">First</a>
-      {% endif %}
+   {% if page_obj.number > 1 %}
+    <a href="?page=1">First</a>
+   {% endif %}
 
-      {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}">&larr;</a>
-      {% endif %}
+   {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}">&larr;</a>
+   {% endif %}
 
-      {% for num in page_obj.paginator.page_range %}
-        {% if num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
-          {% if num == page_obj.number %}
-            <strong>{{ num }}</strong>
-          {% else %}
-            <a href="?page={{ num }}">{{ num }}</a>
-          {% endif %}
-        {% endif %}
-      {% endfor %}
+   {% for num in page_obj.paginator.page_range %}
+    {% if num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+     {% if num == page_obj.number %}
+      <strong>{{ num }}</strong>
+     {% else %}
+      <a href="?page={{ num }}">{{ num }}</a>
+     {% endif %}
+    {% endif %}
+   {% endfor %}
 
-      {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}">&rarr;</a>
-      {% endif %}
+   {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}">&rarr;</a>
+   {% endif %}
 
-      {% if page_obj.number < page_obj.paginator.num_pages %}
-        <a href="?page={{ page_obj.paginator.num_pages }}">Last</a>
-      {% endif %}
+   {% if page_obj.number < page_obj.paginator.num_pages %}
+    <a href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+   {% endif %}
 
-    </div>
   </div>
+ </div>
 {% endif %}
 
 <script src="/static/js/common.js"></script>

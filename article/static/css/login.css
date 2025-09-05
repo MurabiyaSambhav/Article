@@ -1,73 +1,156 @@
+/* login.css */
+/* Styled to match the subtle, modern theme and animations consistent with article.css, add.css, and draft.css */
+
+/* Base styles */
 body {
-     font-family: Arial, sans-serif;
-     background-color: #f4f4f4;
-     display: flex;
-     justify-content: center;
-     align-items: center;
-     height: 100vh;
-     margin: 0;
- }
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    margin: 20px;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 10px;
+}
 
- form {
-     background-color: #fff;
-     padding: 20px;
-     border-radius: 5px;
-     box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-     width: 350px;
+#main-content {
+    background: #fff;
+    padding: 30px 35px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    max-width: 420px;
+    width: 100%;
+    animation: fadeSlideIn 0.5s ease forwards;
+    box-sizing: border-box;
+}
 
-     box-sizing: border-box;
- }
+/* Form styles */
+#loginForm {
+    display: flex;
+    flex-direction: column;
+}
 
- input {
-     width: 100%;
-     padding: 8px;
-     margin-bottom: 15px;
-     border: 1px solid #ccc;
-     border-radius: 4px;
+/* Form heading */
+#loginForm h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-weight: 700;
+    color: #222;
+    font-size: 2rem;
+    user-select: none;
+    text-align: center;
+}
 
-     box-sizing: border-box;
- }
+/* Input labels */
+#loginForm label {
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #444;
+    user-select: none;
+}
 
- h2 {
-     text-align: center;
-     margin-bottom: 20px;
- }
+/* Inputs */
+#loginForm input[type="email"],
+#loginForm input[type="password"] {
+    padding: 10px 12px;
+    font-size: 15px;
+    font-family: inherit;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box;
+}
 
- label {
-     display: block;
-     margin-bottom: 5px;
-     font-weight: bold;
- }
+#loginForm input[type="email"]:focus,
+#loginForm input[type="password"]:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+    outline: none;
+}
 
- button {
-     width: 100%;
-     padding: 10px;
-     background-color: #007BFF;
-     color: white;
-     border: none;
-     border-radius: 4px;
-     cursor: pointer;
- }
+/* Submit button */
+#loginForm button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    font-weight: 700;
+    padding: 12px 0;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    user-select: none;
+}
 
- button:hover {
-     background-color: #0056b3;
- }
+#loginForm button[type="submit"]:hover,
+#loginForm button[type="submit"]:focus {
+    background-color: #0056b3;
+    transform: scale(1.04);
+    outline: none;
+}
 
- .custom-alert {
-     margin-bottom: 15px;
-     padding: 10px;
-     border-radius: 5px;
-     font-weight: bold;
-     text-align: center;
- }
+/* Register link paragraph */
+#loginForm p {
+    margin-top: 20px;
+    font-size: 14px;
+    text-align: center;
+    color: #555;
+    user-select: none;
+}
 
- .alert-success {
-     background-color: #4CAF50;
-     color: white;
- }
+#loginForm p a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 600;
+    position: relative;
+    transition: color 0.3s ease;
+}
 
- .alert-error {
-     background-color: #f44336;
-     color: white;
- }
+#loginForm p a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background-color: #007bff;
+    transition: width 0.3s ease;
+}
 
+#loginForm p a:hover,
+#loginForm p a:focus {
+    color: #0056b3;
+    outline: none;
+}
+
+#loginForm p a:hover::after,
+#loginForm p a:focus::after {
+    width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    #main-content {
+        padding: 25px 20px;
+        max-width: 100%;
+    }
+
+    #loginForm button[type="submit"] {
+        font-size: 15px;
+    }
+}
+
+/* Keyframe animations */
+@keyframes fadeSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

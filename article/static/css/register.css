@@ -1,121 +1,171 @@
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f4;
-        margin: 0;
-        height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+/* register.css */
+/* Styled consistently with the project's subtle modern theme and animations */
+
+/* Base styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    margin: 20px;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 10px;
+}
+
+#main-content {
+    background: #fff;
+    padding: 30px 35px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    max-width: 480px;
+    width: 100%;
+    animation: fadeSlideIn 0.5s ease forwards;
+    box-sizing: border-box;
+}
+
+/* Form styles */
+#registerForm {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Form heading */
+#registerForm h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-weight: 700;
+    color: #222;
+    font-size: 2rem;
+    user-select: none;
+    text-align: center;
+}
+
+/* Form messages container */
+.form-messages {
+    min-height: 24px;
+    margin-bottom: 12px;
+    font-weight: 600;
+    color: #d9534f;
+    /* default for errors */
+    user-select: none;
+    text-align: center;
+}
+
+/* Input labels */
+#registerForm label {
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #444;
+    user-select: none;
+}
+
+/* Inputs */
+#registerForm input[type="text"],
+#registerForm input[type="email"],
+#registerForm input[type="password"],
+#registerForm input[type="number"] {
+    padding: 10px 12px;
+    font-size: 15px;
+    font-family: inherit;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box;
+}
+
+#registerForm input[type="text"]:focus,
+#registerForm input[type="email"]:focus,
+#registerForm input[type="password"]:focus,
+#registerForm input[type="number"]:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+    outline: none;
+}
+
+/* Submit button */
+#registerForm button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    font-weight: 700;
+    padding: 12px 0;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    user-select: none;
+}
+
+#registerForm button[type="submit"]:hover,
+#registerForm button[type="submit"]:focus {
+    background-color: #0056b3;
+    transform: scale(1.04);
+    outline: none;
+}
+
+/* Login link paragraph */
+#registerForm p {
+    margin-top: 20px;
+    font-size: 14px;
+    text-align: center;
+    color: #555;
+    user-select: none;
+}
+
+#registerForm p a.spa-link {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 600;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+#registerForm p a.spa-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background-color: #007bff;
+    transition: width 0.3s ease;
+}
+
+#registerForm p a.spa-link:hover,
+#registerForm p a.spa-link:focus {
+    color: #0056b3;
+    outline: none;
+}
+
+#registerForm p a.spa-link:hover::after,
+#registerForm p a.spa-link:focus::after {
+    width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    #main-content {
+        padding: 25px 20px;
+        max-width: 100%;
     }
 
-    form {
-        background-color: #fff;
-        padding: 20px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        max-width: 400px;
-        width: 100%;
+    #registerForm button[type="submit"] {
+        font-size: 15px;
+    }
+}
+
+/* Keyframe animations */
+@keyframes fadeSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-15px);
     }
 
-    h2 {
-        color: #333;
-        text-align: center;
-        margin-bottom: 20px;
+    100% {
+        opacity: 1;
+        transform: translateY(0);
     }
-
-    label {
-        font-weight: bold;
-    }
-
-    input[type="text"],
-    input[type="email"],
-    input[type="password"], 
-    input[type="number"]{
-        width: 100%;
-        padding: 8px;
-        margin: 5px 0 15px 0;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-    }
-
-    button {
-        width: 100%;
-        padding: 10px 0;
-        background-color: #007BFF;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-
-    button:hover {
-        background-color: #0056b3;
-    }
-
-    p {
-        margin-top: 15px;
-        text-align: center;
-    }
-
-    a {
-        color: #007BFF;
-        text-decoration: none;
-    }
-
-    a:hover {
-        text-decoration: underline;
-    }
-
-        .form-error {
-            color: red;
-            margin-bottom: 10px;
-            font-weight: bold;
-            text-align: center;
-            display: none;
-            /* hidden until an error */
-        }
-
-    .custom-alert {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 9999;
-        padding: 15px 25px;
-        border-radius: 8px;
-        color: white;
-        font-weight: bold;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-        animation: fadeOut 3s ease-in-out forwards;
-        min-width: 250px;
-        text-align: center;
-    }
-
-    .alert-success {
-        background-color: #4CAF50;
-    }
-
-    .alert-error {
-        background-color: #f44336;
-    }
-
-    .alert-info,
-    .alert-warning {
-        background-color: #ff9800;
-    }
-
-    @keyframes fadeOut {
-        0% {
-            opacity: 1;
-        }
-
-        80% {
-            opacity: 1;
-        }
-
-        100% {
-            opacity: 0;
-            top: 0;
-        }
-    }
+}

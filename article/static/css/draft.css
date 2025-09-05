@@ -1,55 +1,180 @@
+/* draft.css */
+/* Styled to match the subtle, modern theme and animations as in article.css and add.css */
+
+/* Base styles */
 body {
     font-family: Arial, sans-serif;
-    background: #f0f0f0;
-    padding: 20px;
-}
-
-h2 {
+    background-color: #f9f9f9;
+    margin: 20px;
     color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 10px;
 }
 
-form {
+/* Main content container */
+#main-content {
     background: #fff;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    max-width: 500px;
-}
-
-label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-input[type="text"],
-textarea {
+    padding: 25px 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    max-width: 700px;
     width: 100%;
-    padding: 6px;
+    animation: fadeSlideIn 0.5s ease forwards;
+}
+
+/* Page heading */
+#main-content h2 {
+    margin-top: 0;
+    margin-bottom: 18px;
+    font-weight: 700;
+    color: #222;
+    font-size: 1.8rem;
+    user-select: none;
+    text-align: center;
+}
+
+/* Draft article container */
+#draft-container>div {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px 20px;
     margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: default;
+    animation: slideInLeft 0.5s ease forwards;
+    opacity: 0;
+    transform: translateX(-20px);
 }
 
-button {
-    padding: 6px 12px;
-    margin-right: 8px;
-    background-color: #007BFF;
+/* Reveal animation triggered with JS adding .visible class */
+#draft-container>div.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+#draft-container>div:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Article titles */
+#draft-container h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #222;
+    user-select: text;
+}
+
+/* Article content paragraphs */
+#draft-container p {
+    margin: 6px 0;
+    line-height: 1.5;
+    color: #444;
+    user-select: text;
+}
+
+/* Tags label styling and tag text */
+#draft-container p strong {
+    color: #555;
+}
+
+/* Links styled like buttons with subtle hover */
+a.ajax-page {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 6px 14px;
+    background-color: #007bff;
     color: white;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-}
-
-button[name="cancel"] {
-    background-color: #888;
-}
-
-a {
-    color: #007BFF;
+    font-weight: 600;
+    border-radius: 5px;
     text-decoration: none;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    user-select: none;
 }
 
-a:hover {
-    text-decoration: underline;
+a.ajax-page:hover,
+a.ajax-page:focus {
+    background-color: #0056b3;
+    transform: scale(1.04);
+    outline: none;
+}
+
+/* Center the single back link paragraph */
+#main-content>p {
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Gray no drafts message */
+#draft-container p[style*="color: gray"] {
+    font-style: italic;
+    color: #777;
+    user-select: none;
+    margin-top: 40px;
+    text-align: center;
+}
+
+/* Hidden AJAX message container styling */
+.form-messages {
+    margin-top: 20px;
+}
+
+/* Alert styling consistent with warning but subtle */
+.custom-alert.alert-warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-weight: 600;
+    user-select: none;
+    text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    #main-content {
+        padding: 20px 20px;
+        max-width: 100%;
+    }
+
+    #draft-container>div {
+        padding: 12px 14px;
+        margin-bottom: 12px;
+    }
+
+    a.ajax-page {
+        padding: 8px 16px;
+    }
+}
+
+/* Keyframe animations */
+@keyframes fadeSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    0% {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
