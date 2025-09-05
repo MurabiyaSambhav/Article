@@ -50,7 +50,7 @@ class ArticleHybridViewSet(viewsets.ModelViewSet):
         })
 
 # -------------------- Traditional Views (Modified for SSR) --------------------
-
+# ------------------------------- Register ----------------------------------
 def register(request):
     if request.method == 'POST':
         try:
@@ -73,6 +73,8 @@ def register(request):
         except json.JSONDecodeError:
             return JsonResponse({"success": False, "message": "Invalid JSON data."}, status=400)
     return render(request, 'register.html')
+
+# ------------------------------- Login ----------------------------------
 
 def login(request):
     if request.user.is_authenticated:
@@ -98,9 +100,13 @@ def login(request):
             return JsonResponse({"success": False, "message": "Invalid JSON data."}, status=400)
     return render(request, 'login.html')
 
+# ------------------------------- Logout ----------------------------------
+
 def logout(request):
     auth_logout(request)
     return redirect(reverse('article'))
+
+# ------------------------------- Articles ----------------------------------
 
 def article(request):
     user = request.user if request.user.is_authenticated else None
@@ -141,6 +147,10 @@ def article(request):
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     
+    # Process each article to create a 'tags_list' attribute for the template
+    for article_obj in page_obj.object_list:
+        article_obj.tags_list = [tag.strip() for tag in article_obj.tags.split(',') if tag.strip()]
+
     context = {
         'user_name': user.username if user else None,
         'is_logged_in': bool(user),
@@ -154,6 +164,8 @@ def article(request):
     }
     
     return render(request, 'article.html', context)
+
+# ------------------------------- Add / Edit Article ----------------------------------
 
 @login_required(login_url='login')
 def save_article(request, article_id=None):
@@ -206,6 +218,8 @@ def save_article(request, article_id=None):
         context = {'article': article}
         return render(request, 'add_article.html', context)
 
+# ------------------------------- Draft Articles ----------------------------------
+
 @login_required(login_url='login')
 def draft_article(request):
     drafts_qs = Articles.objects.filter(author=request.user, is_draft=True).order_by('-created_at')
@@ -226,8 +240,12 @@ def draft_article(request):
     
     return render(request, 'draft_article.html', context)
 
+# ------------------------------- Tags Redirect ----------------------------------
+
 def tags(request, tag):
     return redirect(reverse('article') + f'?tag={tag}')
+
+# ------------------------------- Like ----------------------------------
 
 @login_required(login_url='login')
 def like_article(request, article_id):
@@ -256,6 +274,8 @@ def like_article(request, article_id):
         })
     
     return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
+
+# ------------------------------- Register ----------------------------------
 
 @login_required(login_url='login')
 def add_comment(request, article_id):
@@ -287,7 +307,7 @@ def add_comment(request, article_id):
                 'comment_data': {
                     'author': user.username,
                     'content': content,
-                    'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                    'created_at': comment.created_at.strftime('%Y-%m-%dT%H:%M:%S')
                 }
             })
         except json.JSONDecodeError:
@@ -296,15 +316,15 @@ def add_comment(request, article_id):
     return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
 
 def get_comments(request, article_id):
-  article = get_object_or_404(Articles, id=article_id)
-  comments = Comment.objects.filter(article=article).order_by('created_at').annotate(
-    author_username=F('user__username')
-  )
-  comment_list = [
-    {
-      'author': comment.author_username,
-      'content': comment.content,
-      'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M')
-    } for comment in comments
-  ]
-  return JsonResponse({'success': True, 'comments': comment_list})
+    article = get_object_or_404(Articles, id=article_id)
+    comments = Comment.objects.filter(article=article).order_by('created_at').annotate(
+        author_username=F('user__username')
+    )
+    comment_list = [
+        {
+            'author': comment.author_username,
+            'content': comment.content,
+            'created_at': comment.created_at.strftime('%Y-%m-%dT%H:%M:%S')
+        } for comment in comments
+    ]
+    return JsonResponse({'success': True, 'comments': comment_list})

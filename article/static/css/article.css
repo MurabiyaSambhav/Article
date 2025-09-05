@@ -256,7 +256,6 @@ a:focus::after {
 /* Comment form */
 .comment-input {
     resize: vertical;
-    padding: 8px;
     font-size: 14px;
     border: 1px solid #ccc;
     border-radius: 4px;

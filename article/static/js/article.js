@@ -190,9 +190,3 @@ function showMessage(message) {
   // In a real application, you would replace this with a custom modal or notification system.
 }
 
-const likeBtn = document.querySelector('.like-btn');
-
-likeBtn.addEventListener('click', () => {
-  likeBtn.classList.add('bounce');
-  setTimeout(() => likeBtn.classList.remove('bounce'), 500);
-});
