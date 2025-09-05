@@ -1,9 +1,9 @@
 // login.js
-console.log("Login Page js ----------->",window.location.pathname,"at",new Date().toLocaleTimeString());
+console.log("Login Page js ----------->", window.location.pathname, "at", new Date().toLocaleTimeString());
 
 
 document.addEventListener("DOMContentLoaded", () => {
-const loginForm = document.getElementById("loginForm");
+  const loginForm = document.getElementById("loginForm");
   if (!loginForm) {
     console.warn("Login form not found. Skipping event listener attachment.");
     return;

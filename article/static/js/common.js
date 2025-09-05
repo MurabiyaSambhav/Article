@@ -1,38 +1,28 @@
-alert(" common.js loaded!");
-
 console.log("Common js----------->", window.location.pathname, "at", new Date().toLocaleTimeString());
-// Shared utility functions
+
+//  Get cookie value
 function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
-    }
-  }
-  return cookieValue;
+  return document.cookie
+    .split("; ")
+    .find(c => c.startsWith(name + "="))
+    ?.split("=")[1] || null;
 }
 
-function showAlert(message, type = 'info') {
-  const alertBox = document.createElement('div');
-  alertBox.textContent = message;
-  alertBox.className = `alert alert-${type}`;
-  document.body.appendChild(alertBox);
-  setTimeout(() => alertBox.remove(), 3000);
+//  Show alert (auto-dismiss)
+function showAlert(message, type = "info") {
+  const box = document.createElement("div");
+  box.textContent = message;
+  box.className = `alert alert-${type}`;
+  document.body.appendChild(box);
+  setTimeout(() => box.remove(), 3000);
 }
 
-function handleAjaxResponse(result) {
-  if (result.success) {
-    showAlert(result.message, 'success');
-    if (result.redirect) {
-      // Full page reload for correct script execution
-      window.location.href = result.redirect;
-    }
+//  Handle AJAX JSON response
+function handleAjaxResponse(res) {
+  if (res.success) {
+    showAlert(res.message, "success");
+    if (res.redirect) location.href = res.redirect;
   } else {
-    showAlert(result.message, 'error');
+    showAlert(res.message, "error");
   }
 }

@@ -1,67 +1,46 @@
 // register.js
-
 console.log("Register Page js ----------->", window.location.pathname, "at", new Date().toLocaleTimeString());
 
 document.addEventListener("DOMContentLoaded", () => {
-  const registerForm = document.getElementById("registerForm");
-  if (!registerForm) {
-    console.warn("Register form not found. Skipping event listener attachment.");
-    return;
-  }
+  const form = document.getElementById("registerForm");
+  if (!form) return console.warn("Register form not found.");
 
   const csrfToken = getCookie("csrftoken");
-  if (!csrfToken) {
-    console.error("CSRF token not found!");
-    showAlert("Security token missing. Please refresh the page.", "error");
-    return;
-  }
+  if (!csrfToken) return showAlert("Security token missing. Please refresh.", "error");
 
-  const submitBtn = registerForm.querySelector("button[type='submit']");
+  const submitBtn = form.querySelector("button[type='submit']");
 
-  registerForm.addEventListener("submit", async (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // Convert form data to JSON
-    const formData = new FormData(registerForm);
-    const data = Object.fromEntries(formData.entries());
+    const data = Object.fromEntries(new FormData(form).entries());
 
     try {
-      // Disable submit button during request
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = "Registering...";
-      }
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Registering...";
 
-      const response = await fetch(registerForm.action, {
+      const res = await fetch(form.action, {
         method: "POST",
-        body: JSON.stringify(data),
         headers: {
           "Content-Type": "application/json",
           "X-Requested-With": "XMLHttpRequest",
           "X-CSRFToken": csrfToken,
         },
+        body: JSON.stringify(data),
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          `Network error (${response.status}): ${errorText || "Unknown"}`
-        );
-      }
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || "Registration failed");
 
-      const result = await response.json();
       handleAjaxResponse(result);
 
     } catch (err) {
       console.error("Registration AJAX Error:", err);
-      showAlert("Registration failed. Please check your details and try again.", "error");
+      showAlert("Registration failed. Please check your details.", "error");
 
     } finally {
-      // Re-enable button after request
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Register";
-      }
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Register";
     }
   });
 });
