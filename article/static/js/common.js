@@ -1,3 +1,5 @@
+alert(" common.js loaded!");
+
 console.log("Common js----------->", window.location.pathname, "at", new Date().toLocaleTimeString());
 // Shared utility functions
 function getCookie(name) {

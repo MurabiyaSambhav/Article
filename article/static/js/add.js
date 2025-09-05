@@ -1,41 +1,29 @@
 console.log("Add js----------->", window.location.pathname, "at", new Date().toLocaleTimeString());
 
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('addArticleForm');
 
-document.addEventListener('DOMContentLoaded', function () {
-  const addArticleForm = document.getElementById('addArticleForm');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-  // Attach event listeners to all buttons within the form
-  addArticleForm.querySelectorAll('button[type="submit"]').forEach(button => {
-    button.addEventListener('click', async function (event) {
-      // Prevent the default form submission that would cause the JSON error
-      event.preventDefault();
-
-      const action = this.dataset.action;
-      const form = this.closest('form');
+      const submitBtn = e.submitter; // The button that triggered submit
+      const action = submitBtn?.dataset.action;
       const csrfToken = getCookie('csrftoken');
 
-      // Collect the data from the form inputs
-      const title = form.querySelector('input[name="title"]').value;
-      const content = form.querySelector('textarea[name="content"]').value;
-      const tags = form.querySelector('input[name="tags"]').value;
-
-      // Handle the delete action, which is a bit different
-      if (action === 'delete') {
-        if (!confirm('Are you sure you want to delete this article?')) {
-          return;
-        }
+      if (action === 'delete' && !confirm('Are you sure you want to delete this article?')) {
+        return;
       }
 
-      // Create a JSON payload with the action and form data
       const payload = {
-        action: action,
-        title: title,
-        content: content,
-        tags: tags,
+        action,
+        title: form.querySelector('[name="title"]').value,
+        content: form.querySelector('[name="content"]').value,
+        tags: form.querySelector('[name="tags"]').value,
       };
 
       try {
-        const response = await fetch(form.action, {
+        const res = await fetch(form.action, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -44,34 +32,24 @@ document.addEventListener('DOMContentLoaded', function () {
           body: JSON.stringify(payload),
         });
 
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          // Use a simple alert for success messages
+        const data = await res.json();
+        if (res.ok && data.success) {
           alert(data.message);
-          if (data.redirect) {
-            window.location.href = data.redirect;
-          }
+          if (data.redirect) location.href = data.redirect;
         } else {
-          alert('Error: ' + data.message);
+          alert('Error: ' + (data.message || 'Something went wrong.'));
         }
-      } catch (error) {
-        console.error('There was a problem with the fetch operation:', error);
+      } catch (err) {
+        console.error(err);
         alert('An error occurred. Please try again.');
       }
     });
-  });
+  }
 
-  // Handle cancel buttons
-  document.querySelectorAll('.cancel-btn').forEach(button => {
-    button.addEventListener('click', function () {
-      const redirectUrl = this.dataset.redirect;
-      if (redirectUrl) {
-        window.location.href = redirectUrl;
-      }
+  // Cancel button
+  document.querySelectorAll('.cancel-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.redirect) location.href = btn.dataset.redirect;
     });
   });
 });
