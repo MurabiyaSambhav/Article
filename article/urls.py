@@ -25,7 +25,8 @@ urlpatterns = [
     path('logout/', logout, name='logout'),
     path('register/', register, name='register'),
     path('tags/<str:tag>/', tags, name='tags'),
-    path('article/<int:article_id>/like/', views.like_article, name='like_article'),
+     # AJAX API Endpoints for dynamic interactions
+    path('like_article/<int:article_id>/', views.like_article, name='like_article'),
     path('add_comment/<int:article_id>/', views.add_comment, name='add_comment'),
     path('get_comments/<int:article_id>/', views.get_comments, name='get_comments'),
 

@@ -4,22 +4,7 @@ console.log("Article Page js ----------->", window.location.pathname, "at", new 
 // Get the user's logged-in status from the Django template.
 const isLoggedIn = document.getElementById('navbar').dataset.isLoggedIn === 'true';
 
-// Function to get the CSRF token from the cookie
-function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.startsWith(name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
-    }
-  }
-  return cookieValue;
-}
-
+/* ------------------------- COMMENTS ------------------------- */
 // Add event listener for comment toggles
 document.querySelectorAll('.comment-toggle-btn').forEach(button => {
   button.addEventListener('click', () => {
@@ -29,7 +14,6 @@ document.querySelectorAll('.comment-toggle-btn').forEach(button => {
     // Toggle visibility of the comments section
     if (commentsSection.style.display === 'none' || commentsSection.style.display === '') {
       commentsSection.style.display = 'block';
-      // Only fetch and display comments if the section is being shown
       fetchAndDisplayComments(articleId);
     } else {
       commentsSection.style.display = 'none';
@@ -41,7 +25,6 @@ document.querySelectorAll('.comment-toggle-btn').forEach(button => {
 document.querySelectorAll('.post-comment-btn').forEach(button => {
   button.addEventListener('click', async () => {
     if (!isLoggedIn) {
-      // Using a custom message box instead of alert()
       showMessage('Please log in to post a comment.');
       return;
     }
@@ -51,7 +34,6 @@ document.querySelectorAll('.post-comment-btn').forEach(button => {
     const content = commentInput.value.trim();
 
     if (content === '') {
-      // Using a custom message box instead of alert()
       showMessage('Please enter a comment.');
       return;
     }
@@ -69,18 +51,14 @@ document.querySelectorAll('.post-comment-btn').forEach(button => {
           'Content-Type': 'application/json',
           'X-CSRFToken': csrfToken
         },
-        body: JSON.stringify({ content: content })
+        body: JSON.stringify({ content })
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
       const data = await response.json();
       if (data.success) {
-        // Clear the input field after successful post
         commentInput.value = '';
-        // Update comments count and re-fetch to display the new comment
         const commentsCountSpan = button.closest('li').querySelector('.comments-count');
         commentsCountSpan.textContent = data.new_count;
         fetchAndDisplayComments(articleId);
@@ -94,50 +72,47 @@ document.querySelectorAll('.post-comment-btn').forEach(button => {
   });
 });
 
-// Function to fetch and display comments for a given article
+// Fetch and display comments
 async function fetchAndDisplayComments(articleId) {
   const commentsList = document.getElementById(`comments-list-${articleId}`);
-  commentsList.innerHTML = '<li>Loading comments...</li>'; // Show a loading message
+  commentsList.innerHTML = '<li>Loading comments...</li>';
 
   try {
     const response = await fetch(`/get_comments/${articleId}/`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data = await response.json();
 
-    commentsList.innerHTML = ''; // Clear the loading message
+    commentsList.innerHTML = '';
     if (data.comments && data.comments.length > 0) {
-      // Sort comments by created_at in JavaScript to avoid database index issues
       data.comments.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-
       data.comments.forEach(comment => {
         const commentElement = document.createElement('li');
         commentElement.className = 'comment-item';
-        commentElement.innerHTML = `<strong>${comment.author}</strong> on <span>${comment.created_at}</span> <p>${comment.content}</p>`;
+        commentElement.innerHTML =
+          `<strong>${comment.author}</strong> on <span>${comment.created_at}</span>
+           <p>${comment.content}</p>`;
         commentsList.appendChild(commentElement);
       });
     } else {
       commentsList.innerHTML = '<li>No comments yet. Be the first to comment!</li>';
     }
 
-    // Add a scrollbar if there are more than 5 comments
     const commentsListContainer = commentsList.parentElement;
     if (data.comments.length > 5) {
-      commentsListContainer.style.maxHeight = '250px'; // Set a max height
-      commentsListContainer.style.overflowY = 'auto'; // Enable vertical scrolling
+      commentsListContainer.style.maxHeight = '250px';
+      commentsListContainer.style.overflowY = 'auto';
     } else {
       commentsListContainer.style.maxHeight = 'none';
       commentsListContainer.style.overflowY = 'visible';
     }
-
   } catch (error) {
     console.error('Error fetching comments:', error);
     commentsList.innerHTML = '<li>Failed to load comments. Please try again later.</li>';
   }
 }
 
-// Like/Unlike button functionality
+/* ------------------------- LIKES ------------------------- */
+// Like/Unlike button
 document.querySelectorAll('.like-btn').forEach(button => {
   button.addEventListener('click', async () => {
     if (!isLoggedIn) {
@@ -163,17 +138,17 @@ document.querySelectorAll('.like-btn').forEach(button => {
         body: JSON.stringify({ is_liked: isLiked })
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
       const data = await response.json();
       if (data.success) {
-        const newCount = data.new_count;
         const likesCountSpan = button.nextElementSibling.querySelector('.likes-count');
-        likesCountSpan.textContent = newCount;
+        likesCountSpan.textContent = data.new_count;
         button.dataset.isLiked = data.is_liked;
         button.textContent = data.is_liked ? 'Liked!' : 'Like';
+
+        // Refresh likes list if open
+        fetchAndDisplayLikes(articleId);
       } else {
         showMessage(`Error: ${data.message}`);
       }
@@ -184,9 +159,60 @@ document.querySelectorAll('.like-btn').forEach(button => {
   });
 });
 
-// A simple custom function to display messages to the user
-function showMessage(message) {
-  console.log(message);
-  // In a real application, you would replace this with a custom modal or notification system.
+// Add event listener for "view likes" buttons
+document.querySelectorAll('.likes-toggle-btn').forEach(button => {
+  button.addEventListener('click', () => {
+    const articleId = button.dataset.articleId;
+    const likesSection = document.getElementById(`likes-section-${articleId}`);
+
+    if (likesSection.style.display === 'none' || likesSection.style.display === '') {
+      likesSection.style.display = 'block';
+      fetchAndDisplayLikes(articleId);
+    } else {
+      likesSection.style.display = 'none';
+    }
+  });
+});
+
+// Fetch and display likes
+async function fetchAndDisplayLikes(articleId) {
+  const likesList = document.getElementById(`likes-list-${articleId}`);
+  if (!likesList) return;
+  likesList.innerHTML = '<li>Loading likes...</li>';
+
+  try {
+    const response = await fetch(`/get_likes/${articleId}/`);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const data = await response.json();
+
+    likesList.innerHTML = '';
+    if (data.likes && data.likes.length > 0) {
+      data.likes.forEach(like => {
+        const li = document.createElement('li');
+        li.className = 'like-item';
+        li.innerHTML = `<strong>${like.full_name}</strong> (${like.username}) on <span>${like.created_at}</span>`;
+        likesList.appendChild(li);
+      });
+    } else {
+      likesList.innerHTML = '<li>No likes yet.</li>';
+    }
+
+    const likesListContainer = likesList.parentElement;
+    if (data.likes.length > 5) {
+      likesListContainer.style.maxHeight = '200px';
+      likesListContainer.style.overflowY = 'auto';
+    } else {
+      likesListContainer.style.maxHeight = 'none';
+      likesListContainer.style.overflowY = 'visible';
+    }
+  } catch (error) {
+    console.error('Error fetching likes:', error);
+    likesList.innerHTML = '<li>Failed to load likes. Please try again later.</li>';
+  }
 }
 
+/* ------------------------- UTIL ------------------------- */
+function showMessage(message) {
+  console.log(message);
+  // Replace with custom modal/toast in real app
+}

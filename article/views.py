@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.urls import reverse
@@ -111,6 +111,9 @@ def logout(request):
 def article(request):
     user = request.user if request.user.is_authenticated else None
     
+    # Get the search query from the GET parameters
+    search_query = request.GET.get('search', '').strip()
+
     all_tags_flat = []
     for art in Articles.objects.filter(is_draft=False):
         all_tags_flat.extend([tag.strip() for tag in art.tags.split(',') if tag.strip()])
@@ -121,6 +124,12 @@ def article(request):
     has_drafts = Articles.objects.filter(author=user, is_draft=True).exists() if user else False
     
     queryset = Articles.objects.filter(is_draft=False).select_related('author').order_by('-created_at')
+
+    # Apply the search filter if a query exists
+    if search_query:
+        queryset = queryset.filter(
+            Q(title__icontains=search_query) | Q(content__icontains=search_query)
+        )
     
     if user and user.is_authenticated:
         queryset = queryset.annotate(
@@ -159,6 +168,7 @@ def article(request):
         'has_drafts': has_drafts,
         'no_drafts': not has_drafts,
         'tag_query': tag_query,
+        'search_query': search_query, # Pass the search query back to the template
         'articles': page_obj.object_list,
         'page_obj': page_obj,
     }
@@ -274,6 +284,25 @@ def like_article(request, article_id):
         })
     
     return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
+
+def get_likes(request, article_id):
+    article = get_object_or_404(Articles, id=article_id)
+    likes = article.like_entries.select_related("user").order_by("-created_at")
+
+    likes_data = [
+        {
+            "username": like.user.username,
+            "full_name": like.user.get_full_name() or like.user.username,
+            "created_at": like.created_at.strftime("%Y-%m-%d %H:%M"),
+        }
+        for like in likes
+    ]
+
+    return JsonResponse({
+        "success": True,
+        "likes": likes_data,
+        "count": likes.count(),
+    })
 
 # ------------------------------- Register ----------------------------------
 

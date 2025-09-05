@@ -414,3 +414,16 @@ a:focus::after {
         transform: scale(1);
     }
 }
+
+  /* New CSS to center the title and make it look like a heading */
+  .main-title-container {
+      text-align: center;
+      margin-bottom: 20px;
+  }
+
+  .main-title-container a {
+      text-decoration: none;
+      /* Removes the underline from the link */
+      color: black;
+      /* Sets the color of the title */
+  }

@@ -1,4 +1,6 @@
 // drafts.js
+console.log("Draft js ----------->", window.location.pathname, "at", new Date().toLocaleTimeString());
+
 function initDraftsPage() {
   const draftsLink = document.getElementById("draftsLink");
 

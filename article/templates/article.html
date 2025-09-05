@@ -36,7 +36,10 @@
 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: flex-start;">
 
 <div>
-<h2>Articles</h2>
+<!-- New main title for the page -->
+<div class="main-title-container">
+ <h1><a href="{% url 'article' %}">My Articles</a></h1>
+</div>
 <ul id="article-list" style="list-style: none; padding: 0;">
  {% for article in articles %}
  <li style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; background: white;">
@@ -44,18 +47,23 @@
   <h2>Title: {{ article.title }}</h2>
   <p>{{ article.content }}</p>
   <div class="interactions" style="margin-top: 10px;">
-   <button class="like-btn" 
+   <!-- Conditionally render the like button -->
+   {% if is_logged_in %}
+    <button class="like-btn" 
      data-article-id="{{ article.id }}" 
      data-is-liked="{% if article.is_liked_by_user %}true{% else %}false{% endif %}">
-    {% if article.is_liked_by_user %}
-     Liked! 
-    {% else %}
-     Like
-    {% endif %}
-   </button>
+     {% if article.is_liked_by_user %}
+      Liked!
+     {% else %}
+      Like
+     {% endif %}
+    </button>
+   {% endif %}
    <span>
     <span class="likes-count">{{ article.likes_count }}</span> Likes
    </span>
+
+   <!-- Comment button is always visible to toggle comments section -->
    <button class="comment-toggle-btn" data-article-id="{{ article.id }}">
     Comments
    </button>
@@ -78,10 +86,19 @@
     <ul class="comments-list" id="comments-list-{{ article.id }}" style="list-style: none; padding: 0;">
     </ul>
    </div>
+
+   <!-- Conditionally render the comment form area -->
+   {% if is_logged_in %}
    <div class="comment-form-area" style="margin-top: 10px;">
     <textarea class="comment-input" id="comment-input-{{ article.id }}" placeholder="Write a comment..." style="width: 100%; height: 60px;"></textarea>
     <button class="post-comment-btn" data-article-id="{{ article.id }}">Post</button>
    </div>
+   {% else %}
+    <!-- Message for logged out users -->
+   <div class="comment-form-area" style="margin-top: 10px;">
+    <p>Please <a href="{% url 'login' %}">log in</a> to post a comment.</p>
+   </div>
+   {% endif %}
   </div>
  </li>
  {% empty %}
